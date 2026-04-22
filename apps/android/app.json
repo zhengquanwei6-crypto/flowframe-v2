@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "FlowFrame V2",
+    "slug": "flowframe-v2",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "flowframe",
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.flowframe.v2",
+      "adaptiveIcon": {
+        "backgroundColor": "#171717"
+      }
+    },
+    "extra": {
+      "productMode": "mvp"
+    }
+  }
+}

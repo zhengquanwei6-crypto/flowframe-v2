@@ -8,8 +8,8 @@ out/
 # Expo / React Native
 .expo/
 .expo-shared/
-android/
-ios/
+/android/
+/ios/
 
 # Build outputs
 dist/
