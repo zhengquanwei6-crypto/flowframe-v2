@@ -1,17 +1,26 @@
-import { listAssets, sampleTasks } from "@flowframe/core";
+import { getTaskById, listAssets, sampleTasks } from "@flowframe/core";
 import Link from "next/link";
 
-export default async function ResultsPage() {
-  const assets = await listAssets();
+export default async function ResultsPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ task?: string }>;
+}) {
+  const params = await searchParams;
+  const taskId = params?.task;
+  const task = taskId ? getTaskById(taskId) : undefined;
+  const assets = taskId ? task?.assets ?? [] : await listAssets();
 
   return (
     <main className="page">
       <div className="page-header">
         <div>
           <p className="eyebrow">结果库</p>
-          <h1>集中查看和复用生成结果。</h1>
+          <h1>{task ? task.title : "集中查看和复用生成结果。"}</h1>
           <p className="lead">
-            MVP 先提供结果查看。批量管理、团队共享和长期存储会作为 Pro / Team 能力后续接入。
+            {task
+              ? "这是当前任务的生成结果，可以继续下载、复用或再次运行模板。"
+              : "MVP 先提供结果查看。批量管理、团队共享和长期存储会作为 Pro / Team 能力后续接入。"}
           </p>
         </div>
       </div>
@@ -32,6 +41,15 @@ export default async function ResultsPage() {
           );
         })}
       </div>
+      {assets.length === 0 ? (
+        <div className="panel">
+          <h3>还没有结果</h3>
+          <p className="muted">提交并完成一个模板任务后，结果会显示在这里。</p>
+          <Link className="primary-button" href="/templates">
+            去选择模板
+          </Link>
+        </div>
+      ) : null}
     </main>
   );
 }

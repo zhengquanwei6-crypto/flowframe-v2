@@ -1,5 +1,5 @@
 import { providers } from "../data/providers";
-import { sampleTasks } from "../data/tasks";
+import { createDemoTaskAsset, sampleTasks } from "../data/tasks";
 import { getTemplateById, templates } from "../data/templates";
 import type { Task, TemplateRunPayload } from "../types";
 import { mockHostedProvider } from "./providerAdapters";
@@ -48,15 +48,15 @@ export async function submitTemplateTask(payload: TemplateRunPayload): Promise<T
     id: `task-demo-${createdTaskCount}`,
     title: `${template.name}任务`,
     templateId: template.id,
-    status: providerResponse.status,
-    progress: providerResponse.status === "queued" ? 8 : 1,
+    status: "completed",
+    progress: 100,
     providerId: resolveProviderId(payload.providerId),
     mode: payload.mode,
     createdAt: timestamp,
     updatedAt: timestamp,
     creditCost: template.creditCost,
     inputsSummary: summarizeInputs(template, payload.inputs),
-    assets: []
+    assets: [createDemoTaskAsset(`task-demo-${createdTaskCount}`)]
   };
 
   sampleTasks.unshift(task);

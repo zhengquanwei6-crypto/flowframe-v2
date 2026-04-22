@@ -30,6 +30,11 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
           <div className="progress" aria-label={`进度 ${task.progress}%`}>
             <span style={{ width: `${task.progress}%` }} />
           </div>
+          <div className="badge-row" aria-label="任务状态更新">
+            <span className="badge">已提交</span>
+            <span className="badge">队列已接收</span>
+            <span className="badge">{task.status === "completed" ? "结果已生成" : "生成中"}</span>
+          </div>
           <div className="settings-list">
             <div>
               <span>执行模式</span>
@@ -65,9 +70,14 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             <h2>{task.assets.length > 0 ? "生成结果" : "结果生成中"}</h2>
           </div>
           {template ? (
-            <Link className="secondary-button" href={`/templates/${template.id}/run`}>
-              再次运行
-            </Link>
+            <div className="row-actions">
+              <Link className="secondary-button" href={`/templates/${template.id}/run`}>
+                再次运行
+              </Link>
+              <Link className="primary-button" href={`/results?task=${task.id}`}>
+                查看结果页
+              </Link>
+            </div>
           ) : null}
         </div>
         <div className="grid three-grid">
@@ -81,6 +91,12 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             </div>
           ))}
         </div>
+        {task.assets.length === 0 ? (
+          <div className="panel">
+            <h3>结果还在生成</h3>
+            <p className="muted">任务完成后会在这里显示结果，也会进入结果库。</p>
+          </div>
+        ) : null}
       </section>
     </main>
   );

@@ -468,6 +468,14 @@ h3 {
   border-bottom: 0;
 }
 
+.success-callout {
+  margin-top: 18px;
+  border: 1px solid #b7d7cc;
+  border-radius: 8px;
+  background: #eef7f3;
+  padding: 16px;
+}
+
 .mobile-note {
   display: none;
 }

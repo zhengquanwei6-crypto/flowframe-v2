@@ -1,5 +1,5 @@
 import { templateCategories, templates } from "@flowframe/core";
-import { TemplateCard } from "../_components/shared";
+import { EmptyState, TemplateCard } from "../_components/shared";
 
 export default function TemplatesPage() {
   return (
@@ -28,6 +28,9 @@ export default function TemplatesPage() {
             <TemplateCard key={template.id} template={template} />
           ))}
         </div>
+        {templates.length === 0 ? (
+          <EmptyState title="还没有模板" description="添加模板后，普通用户就能从这里开始任务。" />
+        ) : null}
       </section>
     </main>
   );

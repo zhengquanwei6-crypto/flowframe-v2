@@ -1,5 +1,5 @@
 import { sampleTasks } from "@flowframe/core";
-import { TaskRow } from "../_components/shared";
+import { EmptyState, TaskRow } from "../_components/shared";
 
 export default function TasksPage() {
   return (
@@ -19,6 +19,9 @@ export default function TasksPage() {
           <TaskRow key={task.id} task={task} />
         ))}
       </div>
+      {sampleTasks.length === 0 ? (
+        <EmptyState title="还没有任务" description="选择一个模板并提交任务后，状态会显示在这里。" />
+      ) : null}
     </main>
   );
 }

@@ -254,13 +254,21 @@ export function RunTemplateForm({ templateId }: { templateId: string }) {
           </div>
         </div>
         {submittedTaskId ? (
-          <div className="row-actions">
-            <Link className="primary-button" href={`/tasks/${submittedTaskId}`}>
-              查看任务状态
-            </Link>
-            <Link className="secondary-button" href="/templates">
-              再选模板
-            </Link>
+          <div className="success-callout">
+            <p className="eyebrow">提交成功</p>
+            <h3>任务已生成演示结果</h3>
+            <p className="muted">现在可以进入任务状态页，也可以直接打开结果页。</p>
+            <div className="row-actions">
+              <Link className="primary-button" href={`/tasks/${submittedTaskId}`}>
+                查看任务状态
+              </Link>
+              <Link className="secondary-button" href={`/results?task=${submittedTaskId}`}>
+                查看结果
+              </Link>
+              <Link className="secondary-button" href="/templates">
+                再选模板
+              </Link>
+            </div>
           </div>
         ) : null}
       </aside>

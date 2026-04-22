@@ -1,5 +1,17 @@
 import type { Task } from "../types";
 
+export function createDemoTaskAsset(taskId: string) {
+  return {
+    id: `asset-${taskId}`,
+    taskId,
+    kind: "image" as const,
+    url: "https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?auto=format&fit=crop&w=900&q=80",
+    width: 1024,
+    height: 1024,
+    createdAt: new Date().toISOString()
+  };
+}
+
 export const sampleTasks: Task[] = [
   {
     id: "task-240422-001",
@@ -79,8 +91,8 @@ export function getTaskById(id: string) {
       id,
       title: "创意海报生成任务",
       templateId: "text-to-image-poster",
-      status: "queued",
-      progress: 8,
+      status: "completed",
+      progress: 100,
       providerId: "hosted-demo",
       mode: "normal",
       createdAt: timestamp,
@@ -91,7 +103,7 @@ export function getTaskById(id: string) {
         风格: "现代商业",
         比例: "1:1"
       },
-      assets: []
+      assets: [createDemoTaskAsset(id)]
     } satisfies Task;
   }
 
