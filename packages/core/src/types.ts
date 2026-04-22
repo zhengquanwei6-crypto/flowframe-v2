@@ -129,6 +129,12 @@ export type Provider = {
   isDefault?: boolean;
 };
 
+export type ProviderConfig = {
+  type: "custom_comfyui";
+  baseUrl: string;
+  checkpointName?: string;
+};
+
 export type Task = {
   id: string;
   title: string;
@@ -142,6 +148,8 @@ export type Task = {
   creditCost: number;
   inputsSummary: Record<string, string>;
   assets: Asset[];
+  providerTaskId?: string;
+  providerConfig?: ProviderConfig;
   errorMessage?: string;
 };
 
@@ -150,6 +158,7 @@ export type TemplateRunPayload = {
   providerId?: string;
   mode: UserMode;
   inputs: Record<string, string | number | boolean | string[]>;
+  providerConfig?: ProviderConfig;
 };
 
 export type ProviderExecutionPayload = {
@@ -161,15 +170,17 @@ export type ProviderExecutionPayload = {
 };
 
 export type ProviderAdapter = {
-  submit(payload: ProviderExecutionPayload): Promise<{
+  submit(payload: ProviderExecutionPayload, config?: ProviderConfig): Promise<{
     providerTaskId: string;
     status: TaskStatus;
   }>;
-  getStatus(providerTaskId: string): Promise<{
+  getStatus(providerTaskId: string, config?: ProviderConfig): Promise<{
     status: TaskStatus;
     progress: number;
+    assets?: Asset[];
+    errorMessage?: string;
   }>;
-  cancel(providerTaskId: string): Promise<void>;
+  cancel(providerTaskId: string, config?: ProviderConfig): Promise<void>;
 };
 
 export type PlanKey = "free" | "pro" | "team";

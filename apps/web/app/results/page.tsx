@@ -1,5 +1,6 @@
-import { getTaskById, listAssets, sampleTasks } from "@flowframe/core";
+import { getTask, listAssets, sampleTasks } from "@flowframe/core";
 import Link from "next/link";
+import { LiveTaskPanel } from "../_components/LiveTaskPanel";
 
 export default async function ResultsPage({
   searchParams
@@ -8,7 +9,7 @@ export default async function ResultsPage({
 }) {
   const params = await searchParams;
   const taskId = params?.task;
-  const task = taskId ? getTaskById(taskId) : undefined;
+  const task = taskId ? await getTask(taskId) : undefined;
   const assets = taskId ? task?.assets ?? [] : await listAssets();
 
   return (
@@ -25,23 +26,27 @@ export default async function ResultsPage({
         </div>
       </div>
 
-      <div className="grid three-grid">
-        {assets.map((asset) => {
-          const task = sampleTasks.find((item) => item.id === asset.taskId);
-          return (
-            <Link className="result-card" href={`/tasks/${asset.taskId}`} key={asset.id}>
-              <img src={asset.url} alt={task?.title ?? "生成结果"} />
-              <div className="result-card-body">
-                <h3>{task?.title ?? "生成结果"}</h3>
-                <p className="muted">
-                  {asset.width} x {asset.height} · {new Date(asset.createdAt).toLocaleDateString("zh-CN")}
-                </p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-      {assets.length === 0 ? (
+      {task ? (
+        <LiveTaskPanel initialTask={task} resultOnly />
+      ) : (
+        <div className="grid three-grid">
+          {assets.map((asset) => {
+            const task = sampleTasks.find((item) => item.id === asset.taskId);
+            return (
+              <Link className="result-card" href={`/tasks/${asset.taskId}`} key={asset.id}>
+                <img src={asset.url} alt={task?.title ?? "生成结果"} />
+                <div className="result-card-body">
+                  <h3>{task?.title ?? "生成结果"}</h3>
+                  <p className="muted">
+                    {asset.width} x {asset.height} · {new Date(asset.createdAt).toLocaleDateString("zh-CN")}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+      {!task && assets.length === 0 ? (
         <div className="panel">
           <h3>还没有结果</h3>
           <p className="muted">提交并完成一个模板任务后，结果会显示在这里。</p>

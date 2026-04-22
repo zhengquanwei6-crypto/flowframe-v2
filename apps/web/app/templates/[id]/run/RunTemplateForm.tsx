@@ -6,7 +6,6 @@ import {
   createInitialInputs,
   getFieldsForMode,
   getTemplateById,
-  providers,
   type Task,
   type TemplateInputField,
   type TemplateRunPayload,
@@ -114,15 +113,18 @@ function FieldControl({
 export function RunTemplateForm({ templateId }: { templateId: string }) {
   const template = getTemplateById(templateId)!;
   const [mode, setMode] = useState<UserMode>("normal");
-  const [providerId, setProviderId] = useState("hosted-demo");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [checkpointName, setCheckpointName] = useState("");
   const [inputs, setInputs] = useState<Record<string, string | number | boolean | string[]>>(() =>
     createInitialInputs(template, "normal")
   );
   const [submittedTaskId, setSubmittedTaskId] = useState<string | null>(null);
+  const [submittedStatus, setSubmittedStatus] = useState<Task["status"] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fields = useMemo(() => getFieldsForMode(template, mode), [mode, template]);
+  const isRealTemplate = template.id === "text-to-image-poster";
 
   function switchMode(nextMode: UserMode) {
     setMode(nextMode);
@@ -134,14 +136,31 @@ export function RunTemplateForm({ templateId }: { templateId: string }) {
 
   async function handleSubmit() {
     setError(null);
+    setSubmittedTaskId(null);
+
+    if (!isRealTemplate) {
+      setError("当前真实执行链路只开放“创意海报生成”文生图模板。");
+      return;
+    }
+
+    if (!baseUrl.trim()) {
+      setError("请填写可从服务器访问的 ComfyUI 地址。");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const payload: TemplateRunPayload = {
         templateId: template.id,
-        providerId,
+        providerId: "custom-comfyui",
         mode,
-        inputs
+        inputs,
+        providerConfig: {
+          type: "custom_comfyui",
+          baseUrl: baseUrl.trim(),
+          checkpointName: checkpointName.trim() || undefined
+        }
       };
       const response = await fetch("/api/tasks/submit", {
         method: "POST",
@@ -157,6 +176,7 @@ export function RunTemplateForm({ templateId }: { templateId: string }) {
       }
 
       setSubmittedTaskId(data.task.id);
+      setSubmittedStatus(data.task.status);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "任务提交失败");
     } finally {
@@ -169,7 +189,7 @@ export function RunTemplateForm({ templateId }: { templateId: string }) {
       <div className="panel">
         <div className="section-head">
           <div>
-            <p className="eyebrow">执行模板</p>
+            <p className="eyebrow">真实执行</p>
             <h2>{template.name}</h2>
           </div>
           <div className="mode-toggle" aria-label="模式切换">
@@ -206,67 +226,73 @@ export function RunTemplateForm({ templateId }: { templateId: string }) {
             </div>
           ))}
 
-          {mode === "advanced" ? (
-            <div className="form-field">
-              <label htmlFor="provider">执行 provider</label>
-              <select
-                className="select-input"
-                id="provider"
-                value={providerId}
-                onChange={(event) => setProviderId(event.target.value)}
-              >
-                {providers.map((provider) => (
-                  <option key={provider.id} value={provider.id}>
-                    {provider.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
+          <div className="form-field">
+            <label htmlFor="comfy-url">ComfyUI 地址 *</label>
+            <small>填写服务器能访问到的 ComfyUI 地址，例如 http://your-host:8188。</small>
+            <input
+              className="text-input"
+              id="comfy-url"
+              placeholder="http://127.0.0.1:8188"
+              value={baseUrl}
+              onChange={(event) => setBaseUrl(event.target.value)}
+            />
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="checkpoint">Checkpoint 模型文件名</label>
+            <small>可选。不填时会自动读取 ComfyUI 的第一个 checkpoint。</small>
+            <input
+              className="text-input"
+              id="checkpoint"
+              placeholder="例如 sd_xl_base_1.0.safetensors"
+              value={checkpointName}
+              onChange={(event) => setCheckpointName(event.target.value)}
+            />
+          </div>
 
           {error ? <p className="status failed">{error}</p> : null}
 
           <button className="primary-button" type="button" onClick={handleSubmit} disabled={isSubmitting}>
             <span aria-hidden="true">+</span>
-            {isSubmitting ? "提交中" : `提交任务，消耗 ${template.creditCost} 点`}
+            {isSubmitting ? "正在提交到 ComfyUI" : `提交真实任务，消耗 ${template.creditCost} 点`}
           </button>
         </div>
       </div>
 
       <aside className="panel">
-        <p className="eyebrow">任务预览</p>
-        <h2>普通用户不需要看到节点</h2>
+        <p className="eyebrow">custom_comfyui</p>
+        <h2>表单会映射成 ComfyUI workflow</h2>
         <p className="muted">
-          此页面只展示模板需要的业务输入。服务端会把表单转换成 provider 执行 payload，并隐藏 workflow 绑定细节。
+          用户只填写创作需求和 ComfyUI 地址。系统内部会生成最小文生图 workflow，并用
+          custom_comfyui provider 提交到 `/prompt`。
         </p>
         <div className="settings-list">
           <div>
-            <span>预计耗时</span>
-            <strong>{template.estimatedSeconds} 秒</strong>
+            <span>真实模板</span>
+            <strong>{isRealTemplate ? "文生图" : "未开放"}</strong>
           </div>
           <div>
-            <span>消耗额度</span>
-            <strong>{template.creditCost} 点</strong>
+            <span>Provider</span>
+            <strong>custom_comfyui</strong>
           </div>
           <div>
-            <span>当前模式</span>
-            <strong>{mode === "normal" ? "普通" : "高级"}</strong>
+            <span>状态刷新</span>
+            <strong>任务页自动轮询</strong>
           </div>
         </div>
         {submittedTaskId ? (
           <div className="success-callout">
             <p className="eyebrow">提交成功</p>
-            <h3>任务已生成演示结果</h3>
-            <p className="muted">现在可以进入任务状态页，也可以直接打开结果页。</p>
+            <h3>任务已提交到 ComfyUI</h3>
+            <p className="muted">
+              当前状态：{submittedStatus ?? "queued"}。进入任务页后会自动查询真实状态和结果。
+            </p>
             <div className="row-actions">
               <Link className="primary-button" href={`/tasks/${submittedTaskId}`}>
                 查看任务状态
               </Link>
               <Link className="secondary-button" href={`/results?task=${submittedTaskId}`}>
                 查看结果
-              </Link>
-              <Link className="secondary-button" href="/templates">
-                再选模板
               </Link>
             </div>
           </div>
